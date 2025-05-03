@@ -1,0 +1,14 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Update Repository Index
+    apt:
+      update_cache: yes
+
+  - name: Install btop package
+    apt:
+      name: btop
+      state: latest
