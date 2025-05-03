@@ -1,0 +1,50 @@
+---
+- hosts: all
+  remote_user: root
+  become: true
+  tasks:
+
+    - name: install dependencies
+      apt:
+        name: ca-certificates
+        state: present
+        update_cache: yes
+
+    - name: add docker repository key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: true
+
+    - name: add docker repository to apt
+      ansible.builtin.apt_repository:
+        state: present
+        update_cache: true
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        filename: docker
+        mode: '0644'
+
+
+    - name: install docker
+      apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+
+    - name: check docker is active
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ensure group "docker" exists
+      ansible.builtin.group:
+        name: docker
+        state: present
